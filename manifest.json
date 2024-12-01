@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Summarize Selected Text",
+  "version": "1.0",
+  "description": "Summarize text selected in the current browser tab using OpenAI API.",
+  "permissions": ["contextMenus", "activeTab", "scripting", "storage"],
+  "host_permissions": ["https://api.openai.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "Summarize_It.png",
+    "48": "Summarize_It.png",
+    "128": "Summarize_It.png"
+  }
+}
+
+
