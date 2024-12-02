@@ -21,11 +21,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     const format = 'paragraph';
 
     if (selectedText) {
-      const summary = await summarizeText(selectedText,format);
+      const [summary,errorflag] = await summarizeText(selectedText,format);
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: displaySummary,
-        args: [summary]
+        args: [summary,errorflag]
       });
     }
   };
@@ -34,43 +34,93 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     const format = 'bullet points';
 
     if (selectedText) {
-      const summary = await summarizeText(selectedText,format);
+      const [summary,errorflag] = await summarizeText(selectedText,format);
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: displaySummary,
-        args: [summary]
+        args: [summary,errorflag]
       });
     }
   };
 });
 
+
+//get stored API key
+function getStorageData(key) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(key, (result) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(result[key]);
+      }
+    });
+  });
+}
+
+
 // Summarize the selected text using OpenAI API
 async function summarizeText(text,format) {
-  const apiKey = "APIKEY"; // Replace with your OpenAI API key
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: `In format of ${format}, Summarize this content in maximum 50 words: ${text}, and results must be in the same language with the summarized contents.` }],
-      max_tokens: 100
-    })
-  });
+  try {
 
-  const data = await response.json();
-  if (data.choices && data.choices.length > 0) {
-    return data.choices[0].message.content.trim();
-  } else {
-    return "Failed to generate a summary.";
+    //get stored API key
+    const apiKey = await getStorageData("apiKey");
+    const numWords = await getStorageData("numWords");
+    if (!apiKey) {
+      console.error("No API key found. Please set it in the popup.");
+      return;
+    };
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            "role": "system",
+            "content": `You are a summarization assistant.
+            First, determine language of the user content, and generate the contents only in this language. \
+            Second, Summarize user's content clearly and concisely, in format of ${format}. \
+            The result must be completed within ${numWords} words.`
+          },
+          { 
+            "role": "user", 
+            "content": text
+          }
+        ],
+        max_tokens: 500
+      })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.choices && data.choices.length > 0) {
+        return [data.choices[0].message.content.trim(),0];
+      } else {
+        return ["Failed to generate a summary.",1];
+      }
+    } else {
+      // Handle non-200 responses
+      console.error("Error:", response.status, response.statusText);
+      const errorData = await response.json(); // Parse the error response
+      const errorDetails = errorData['error']['message']
+      console.error("Error details:",errorDetails);
+      return [errorDetails,1];
+    }
+
+  } catch (error) {
+    // Handle network or other unexpected errors
+    console.error("Fetch error:", error);
   }
 }
 
 // Function to display the summary on the page
-function displaySummary(summary) {
+function displaySummary(contents,errorflag) {
   // Create a simple div to show the summary
   const summaryDiv = document.createElement("div");
   summaryDiv.style.position = "fixed";
@@ -84,7 +134,12 @@ function displaySummary(summary) {
   summaryDiv.style.fontFamily = "Arial, sans-serif";
   summaryDiv.style.color = "#333";
   summaryDiv.style.maxWidth = "300px";
-  summaryDiv.innerText = `Summary:\n\n${summary}`;
+  if (errorflag) {
+    summaryDiv.innerText = `Error:\n\n${contents}`;
+  } else {
+    summaryDiv.innerText = `Summary:\n\n${contents}`;
+  }
+  
 
   // Add a close button
   const closeButton = document.createElement("button");

@@ -8,10 +8,13 @@
   "background": {
     "service_worker": "background.js"
   },
-  "icons": {
-    "16": "Summarize_It.png",
-    "48": "Summarize_It.png",
-    "128": "Summarize_It.png"
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "Summarize_It.png",
+      "48": "Summarize_It.png",
+      "128": "Summarize_It.png"
+    }
   }
 }
 
