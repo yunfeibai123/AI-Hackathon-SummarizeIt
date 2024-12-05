@@ -2,14 +2,14 @@
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "summarize_s",
-    title: "Summarize Selected Text in Paragraph",
+    title: "In Paragraph",
     contexts: ["selection"] // Trigger when text is selected
   });
 
     // Second context menu: Translate selected text
     chrome.contextMenus.create({
     id: "summarize_b",
-    title: "Summarize Selected Text in Bullet Points",
+    title: "In Bullet Points",
     contexts: ["selection"] // Trigger when text is selected
     });
 });
@@ -120,41 +120,125 @@ async function summarizeText(text,format) {
 }
 
 // Function to display the summary on the page
-function displaySummary(contents,errorflag) {
-  // Create a simple div to show the summary
+function displaySummary(contents, errorflag) {
+  // Create wrapper div
   const summaryDiv = document.createElement("div");
   summaryDiv.style.position = "fixed";
-  summaryDiv.style.bottom = "10px";
-  summaryDiv.style.right = "10px";
-  summaryDiv.style.padding = "15px";
-  summaryDiv.style.backgroundColor = "white";
-  summaryDiv.style.boxShadow = "0 0 10px rgba(0,0,0,0.5)";
-  summaryDiv.style.borderRadius = "5px";
+  summaryDiv.style.bottom = "30px";
+  summaryDiv.style.right = "30px";
+  summaryDiv.style.padding = "20px";
+  summaryDiv.style.backgroundColor = "rgba(255, 255, 255, 0.95)";
+  summaryDiv.style.boxShadow = "0 10px 25px rgba(0,0,0,0.1)";
+  summaryDiv.style.borderRadius = "15px";
   summaryDiv.style.zIndex = "10000";
-  summaryDiv.style.fontFamily = "Arial, sans-serif";
-  summaryDiv.style.color = "#333";
-  summaryDiv.style.maxWidth = "300px";
-  if (errorflag) {
-    summaryDiv.innerText = `Error:\n\n${contents}`;
-  } else {
-    summaryDiv.innerText = `Summary:\n\n${contents}`;
-  }
-  
+  summaryDiv.style.fontFamily = "'Poppins', sans-serif";
+  summaryDiv.style.maxWidth = "400px";
+  summaryDiv.style.backdropFilter = "blur(10px)";
+  summaryDiv.style.border = "1px solid rgba(255,255,255,0.3)";
+  summaryDiv.style.transition = "all 0.3s ease";
+  summaryDiv.style.animation = "slideIn 0.3s ease-out";
 
-  // Add a close button
+  // Add styles for animation
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    @keyframes fadeOut {
+      to {
+        opacity: 0;
+        transform: translateX(100px);
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Create header
+  const header = document.createElement("div");
+  header.style.display = "flex";
+  header.style.justifyContent = "space-between";
+  header.style.alignItems = "center";
+  header.style.marginBottom = "15px";
+  header.style.paddingBottom = "10px";
+  header.style.borderBottom = "1px solid rgba(0,0,0,0.1)";
+
+  // Create title
+  const title = document.createElement("div");
+  title.style.fontWeight = "600";
+  title.style.fontSize = "16px";
+  title.style.color = errorflag ? "#ff4b2b" : "#2c3e50";
+  title.innerText = errorflag ? "Error" : "Summary";
+
+  // Create close button
   const closeButton = document.createElement("button");
-  closeButton.innerText = "Close";
-  closeButton.style.marginTop = "10px";
-  closeButton.style.padding = "5px 10px";
-  closeButton.style.backgroundColor = "#007BFF";
-  closeButton.style.color = "white";
+  closeButton.innerHTML = "×";
+  closeButton.style.background = "none";
   closeButton.style.border = "none";
-  closeButton.style.borderRadius = "3px";
+  closeButton.style.fontSize = "24px";
   closeButton.style.cursor = "pointer";
-  closeButton.addEventListener("click", () => {
-    document.body.removeChild(summaryDiv);
-  });
+  closeButton.style.color = "#666";
+  closeButton.style.padding = "0 5px";
+  closeButton.style.lineHeight = "1";
+  closeButton.style.transition = "color 0.3s ease";
 
-  summaryDiv.appendChild(closeButton);
+  closeButton.onmouseover = () => closeButton.style.color = "#ff4b2b";
+  closeButton.onmouseout = () => closeButton.style.color = "#666";
+
+  // Create content
+  const content = document.createElement("div");
+  content.style.fontSize = "14px";
+  content.style.lineHeight = "1.6";
+  content.style.color = "#34495e";
+  content.style.whiteSpace = "pre-wrap";
+  content.innerText = contents;
+
+  // Add copy button
+  const copyButton = document.createElement("button");
+  copyButton.innerText = "Copy";
+  copyButton.style.marginTop = "15px";
+  copyButton.style.padding = "8px 15px";
+  copyButton.style.backgroundColor = "#3498db";
+  copyButton.style.color = "white";
+  copyButton.style.border = "none";
+  copyButton.style.borderRadius = "5px";
+  copyButton.style.cursor = "pointer";
+  copyButton.style.transition = "all 0.3s ease";
+  copyButton.style.fontSize = "12px";
+
+  copyButton.onmouseover = () => {
+    copyButton.style.backgroundColor = "#2980b9";
+    copyButton.style.transform = "translateY(-1px)";
+  };
+  copyButton.onmouseout = () => {
+    copyButton.style.backgroundColor = "#3498db";
+    copyButton.style.transform = "translateY(0)";
+  };
+
+  copyButton.onclick = () => {
+    navigator.clipboard.writeText(contents);
+    copyButton.innerText = "Copied!";
+    setTimeout(() => copyButton.innerText = "Copy", 2000);
+  };
+
+  // Assemble the components
+  header.appendChild(title);
+  header.appendChild(closeButton);
+  summaryDiv.appendChild(header);
+  summaryDiv.appendChild(content);
+  summaryDiv.appendChild(copyButton);
+
+  // Add close functionality
+  closeButton.onclick = () => {
+    summaryDiv.style.animation = "fadeOut 0.3s ease-in forwards";
+    setTimeout(() => document.body.removeChild(summaryDiv), 300);
+  };
+
   document.body.appendChild(summaryDiv);
 }

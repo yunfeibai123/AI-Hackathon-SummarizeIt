@@ -2,18 +2,153 @@
 <html>
 <head>
   <title>Text Summarizer</title>
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      width: 300px;
+      padding: 20px;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      margin: 0;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      font-size: 24px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #34495e;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    input:focus {
+      border-color: #3498db;
+      outline: none;
+      box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    #summary {
+      margin-top: 15px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .logo img {
+      width: 50px;
+      height: 50px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input {
+      flex: 1;
+    }
+
+    .toggle-password {
+      position: static !important;
+      background: #e0e7ff !important;
+      border: 1px solid #c7d2fe !important;
+      cursor: pointer;
+      padding: 8px 12px !important;
+      width: auto !important;
+      margin: 0 0 0 8px !important;
+      font-size: 12px !important;
+      color: #4f46e5 !important;
+      transition: all 0.3s ease !important;
+      transform: none !important;
+      border-radius: 6px !important;
+      font-weight: 500 !important;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .toggle-password:hover {
+      background: #c7d2fe !important;
+      color: #4338ca !important;
+      transform: translateY(-1px) !important;
+      box-shadow: 0 2px 4px rgba(79, 70, 229, 0.1) !important;
+    }
+  </style>
 </head>
 <body>
+  <div class="logo">
+    <img src="Summarize_It.png" alt="SummarizIt Logo">
+  </div>
   <h1>SummarizIt</h1>
-  <label for="apiKey">API Key:</label>
-  <input type="text" id="apiKey" placeholder="Enter your API Key"><br><br>
   
-  <label for="numWords">Number of Words:</label>
-  <input type="number" id="numWords" placeholder="Choose number of words in summary"><br><br>
+  <div class="input-group">
+    <label for="apiKey">API Key</label>
+    <div class="input-wrapper">
+      <input type="password" id="apiKey" placeholder="Enter your OpenAI API Key">
+      <button class="toggle-password" id="togglePassword">Show</button>
+    </div>
+  </div>
   
-  <button id="save">Save</button>
-  <div id="summary">Select text on a webpage to summarize.</div>
+  <div class="input-group">
+    <label for="numWords">Summary Length (words)</label>
+    <input type="number" id="numWords" placeholder="Enter number of words">
+  </div>
+  
+  <button id="save">Save Settings</button>
+  
+  <div id="summary">Select text on any webpage and right-click to summarize</div>
+  
   <script src="popup.js"></script>
 </body>
 </html>
